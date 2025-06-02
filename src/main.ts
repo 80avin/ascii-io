@@ -1,7 +1,12 @@
 import "./style.css";
 
-// ASCII character set ordered by visual density (light to dark)
-const ASCII_CHARS = " qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM[];',./{}:\"<>?`1234567890-=~!@#$%^&*()_+";
+// Character sets for ASCII art generation
+const CHARACTER_SETS = {
+  alphanumeric: " qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM[];',./{}:\"<>?`1234567890-=~!@#$%^&*()_+",
+  block: " ▁▂▃▄▅▆▇█▉▊▋▌▍▎▏▐░▒▓▔▕▖▗▘▙▚▛▜▝▞▟▀▄▌▐▖▗▘▙▚▛▜▝▞▟"
+};
+
+type CharacterSetType = keyof typeof CHARACTER_SETS;
 
 interface CharacterIntensity {
   char: string;
@@ -16,8 +21,10 @@ interface TextSizeConfig {
 
 class AsciiArtGenerator {
   private charIntensities: CharacterIntensity[] = [];
+  private currentCharacterSet: CharacterSetType = 'alphanumeric';
   private previewCanvas: HTMLCanvasElement;
   private previewCtx: CanvasRenderingContext2D;
+  private imageAspectRatio: number | null = null;
   private textSizes: TextSizeConfig = {
     small: 32,
     medium: 48,
@@ -45,19 +52,24 @@ class AsciiArtGenerator {
     tempCtx.textAlign = 'center';
     tempCtx.textBaseline = 'middle';
     
+    await this.generateCharacterIntensities(tempCtx, charSize);
+  }
+
+  private async generateCharacterIntensities(ctx: CanvasRenderingContext2D, charSize: number): Promise<void> {
     const intensities: CharacterIntensity[] = [];
+    const characters = CHARACTER_SETS[this.currentCharacterSet];
     
-    for (const char of ASCII_CHARS) {
+    for (const char of characters) {
       // Clear canvas
-      tempCtx.fillStyle = 'white';
-      tempCtx.fillRect(0, 0, charSize, charSize);
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, charSize, charSize);
       
       // Draw character
-      tempCtx.fillStyle = 'black';
-      tempCtx.fillText(char, charSize / 2, charSize / 2);
+      ctx.fillStyle = 'black';
+      ctx.fillText(char, charSize / 2, charSize / 2);
       
       // Get image data and calculate average intensity
-      const imageData = tempCtx.getImageData(0, 0, charSize, charSize);
+      const imageData = ctx.getImageData(0, 0, charSize, charSize);
       let totalIntensity = 0;
       
       for (let i = 0; i < imageData.data.length; i += 4) {
@@ -73,9 +85,9 @@ class AsciiArtGenerator {
       intensities.push({ char, intensity: avgIntensity });
     }
     
-    // Sort by intensity (darkest to lightest)
+    // Sort by intensity (lightest to darkest)
     this.charIntensities = intensities.sort((a, b) => a.intensity - b.intensity);
-    console.log('Character intensities initialized:', this.charIntensities);
+    console.log('Character intensities initialized for', this.currentCharacterSet, ':', this.charIntensities);
   }
 
   private setupEventListeners(): void {
@@ -87,6 +99,13 @@ class AsciiArtGenerator {
         const tabName = target.dataset.tab;
         this.switchTab(tabName!);
       });
+    });
+
+    // Character set selection
+    const characterSetSelect = document.getElementById('character-set') as HTMLSelectElement;
+    characterSetSelect.addEventListener('change', () => {
+      this.currentCharacterSet = characterSetSelect.value as CharacterSetType;
+      this.initializeCharacterIntensities();
     });
 
     // File upload
@@ -139,6 +158,29 @@ class AsciiArtGenerator {
     copyBtn.addEventListener('click', () => this.copyToClipboard());
     downloadBtn.addEventListener('click', () => this.downloadAsText());
 
+    // Aspect ratio locking
+    const lockAspectRatioCheckbox = document.getElementById('lock-aspect-ratio') as HTMLInputElement;
+    const columnsInput = document.getElementById('columns') as HTMLInputElement;
+    const rowsInput = document.getElementById('rows') as HTMLInputElement;
+
+    lockAspectRatioCheckbox.addEventListener('change', () => {
+      if (lockAspectRatioCheckbox.checked && this.imageAspectRatio) {
+        this.updateAspectRatioConstrainedValues();
+      }
+    });
+
+    columnsInput.addEventListener('input', () => {
+      if (lockAspectRatioCheckbox.checked && this.imageAspectRatio) {
+        this.updateRowsFromColumns();
+      }
+    });
+
+    rowsInput.addEventListener('input', () => {
+      if (lockAspectRatioCheckbox.checked && this.imageAspectRatio) {
+        this.updateColumnsFromRows();
+      }
+    });
+
     // Initial text preview
     this.handleTextInput();
   }
@@ -169,23 +211,31 @@ class AsciiArtGenerator {
   }
 
   private drawImagePreview(img: HTMLImageElement): void {
-    const maxWidth = 400;
-    const maxHeight = 300;
-    
-    let { width, height } = img;
-    
-    // Scale image to fit preview
-    if (width > maxWidth || height > maxHeight) {
-      const scale = Math.min(maxWidth / width, maxHeight / height);
-      width *= scale;
-      height *= scale;
+      const maxWidth = 400;
+      const maxHeight = 300;
+      
+      // Store aspect ratio
+      this.imageAspectRatio = img.width / img.height;
+      
+      let { width, height } = img;
+      
+      // Scale image to fit preview
+      if (width > maxWidth || height > maxHeight) {
+        const scale = Math.min(maxWidth / width, maxHeight / height);
+        width *= scale;
+        height *= scale;
+      }
+      
+      this.previewCanvas.width = width;
+      this.previewCanvas.height = height;
+      
+      this.previewCtx.drawImage(img, 0, 0, width, height);
+      
+      // Show aspect ratio control
+      this.showAspectRatioControl();
     }
-    
-    this.previewCanvas.width = width;
-    this.previewCanvas.height = height;
-    
-    this.previewCtx.drawImage(img, 0, 0, width, height);
-  }
+
+
 
   private handleTextInput(): void {
     const textInput = document.getElementById('text-input') as HTMLTextAreaElement;
@@ -229,19 +279,81 @@ class AsciiArtGenerator {
   }
 
   private clearPreview(): void {
-    this.previewCanvas.width = 400;
-    this.previewCanvas.height = 300;
-    this.previewCtx.fillStyle = '#f8f9fa';
-    this.previewCtx.fillRect(0, 0, this.previewCanvas.width, this.previewCanvas.height);
-    
-    // Draw placeholder text
-    this.previewCtx.fillStyle = '#6c757d';
-    this.previewCtx.font = '16px Roboto';
-    this.previewCtx.textAlign = 'center';
-    this.previewCtx.textBaseline = 'middle';
-    this.previewCtx.fillText('Preview will appear here', this.previewCanvas.width / 2, this.previewCanvas.height / 2);
-  }
+      this.previewCanvas.width = 400;
+      this.previewCanvas.height = 300;
+      this.previewCtx.fillStyle = '#f8f9fa';
+      this.previewCtx.fillRect(0, 0, this.previewCanvas.width, this.previewCanvas.height);
+      
+      // Draw placeholder text
+      this.previewCtx.fillStyle = '#6c757d';
+      this.previewCtx.font = '16px Roboto';
+      this.previewCtx.textAlign = 'center';
+      this.previewCtx.textBaseline = 'middle';
+      this.previewCtx.fillText('Preview will appear here', this.previewCanvas.width / 2, this.previewCanvas.height / 2);
+      
+      // Hide aspect ratio control
+      this.hideAspectRatioControl();
+    }
 
+  
+    private showAspectRatioControl(): void {
+      const aspectRatioControl = document.getElementById('aspect-ratio-control') as HTMLElement;
+      aspectRatioControl.style.display = 'block';
+    }
+  
+    private hideAspectRatioControl(): void {
+      const aspectRatioControl = document.getElementById('aspect-ratio-control') as HTMLElement;
+      const lockAspectRatioCheckbox = document.getElementById('lock-aspect-ratio') as HTMLInputElement;
+      aspectRatioControl.style.display = 'none';
+      lockAspectRatioCheckbox.checked = false;
+      this.imageAspectRatio = null;
+    }
+  
+    private updateAspectRatioConstrainedValues(): void {
+      if (!this.imageAspectRatio) return;
+      
+      const columnsInput = document.getElementById('columns') as HTMLInputElement;
+      const rowsInput = document.getElementById('rows') as HTMLInputElement;
+      
+      const currentColumns = parseInt(columnsInput.value);
+      const newRows = Math.round(currentColumns / this.imageAspectRatio);
+      
+      // Ensure rows stay within bounds
+      const clampedRows = Math.max(50, Math.min(1000, newRows));
+      rowsInput.value = clampedRows.toString();
+      
+      // If rows were clamped, adjust columns accordingly
+      if (clampedRows !== newRows) {
+        const adjustedColumns = Math.round(clampedRows * this.imageAspectRatio);
+        columnsInput.value = Math.max(50, Math.min(1000, adjustedColumns)).toString();
+      }
+    }
+  
+    private updateRowsFromColumns(): void {
+      if (!this.imageAspectRatio) return;
+      
+      const columnsInput = document.getElementById('columns') as HTMLInputElement;
+      const rowsInput = document.getElementById('rows') as HTMLInputElement;
+      
+      const columns = parseInt(columnsInput.value);
+      const newRows = Math.round(columns / this.imageAspectRatio);
+      const clampedRows = Math.max(50, Math.min(1000, newRows));
+      
+      rowsInput.value = clampedRows.toString();
+    }
+  
+    private updateColumnsFromRows(): void {
+      if (!this.imageAspectRatio) return;
+      
+      const columnsInput = document.getElementById('columns') as HTMLInputElement;
+      const rowsInput = document.getElementById('rows') as HTMLInputElement;
+      
+      const rows = parseInt(rowsInput.value);
+      const newColumns = Math.round(rows * this.imageAspectRatio);
+      const clampedColumns = Math.max(50, Math.min(1000, newColumns));
+      
+      columnsInput.value = clampedColumns.toString();
+    }
   private async generateAsciiArt(): Promise<void> {
     const generateBtn = document.getElementById('generate-btn') as HTMLButtonElement;
     const outputTextarea = document.getElementById('output') as HTMLTextAreaElement;
@@ -321,7 +433,7 @@ class AsciiArtGenerator {
         
         const avgBrightness = pixelCount > 0 ? totalBrightness / pixelCount : 0;
         
-        // Find the closest ASCII character
+        // Find the closest ASCII character (FIXED: no more inversion)
         const asciiChar = this.getClosestAsciiChar(avgBrightness);
         asciiArt += asciiChar;
       }
@@ -335,15 +447,16 @@ class AsciiArtGenerator {
   }
 
   private getClosestAsciiChar(brightness: number): string {
-    // Invert brightness since we want dark characters for bright pixels
-    const invertedBrightness = 255 - brightness;
+    // Fixed: Use brightness directly, no inversion
+    // Dark pixels (low brightness) should map to dark characters (high intensity)
+    // Light pixels (high brightness) should map to light characters (low intensity)
     
     // Find the character with the closest intensity
     let closestChar = this.charIntensities[0];
-    let minDiff = Math.abs(closestChar.intensity - invertedBrightness);
+    let minDiff = Math.abs(closestChar.intensity - brightness);
     
     for (const charIntensity of this.charIntensities) {
-      const diff = Math.abs(charIntensity.intensity - invertedBrightness);
+      const diff = Math.abs(charIntensity.intensity - brightness);
       if (diff < minDiff) {
         minDiff = diff;
         closestChar = charIntensity;

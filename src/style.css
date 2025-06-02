@@ -5,7 +5,7 @@
 }
 
 body {
-  font-family: 'Roboto', sans-serif;
+  font-family: "Roboto", sans-serif;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   min-height: 100vh;
   padding: 20px;
@@ -16,7 +16,7 @@ body {
   margin: 0 auto;
   background: white;
   border-radius: 15px;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
   overflow: hidden;
 }
 
@@ -57,7 +57,10 @@ body {
   flex-direction: column;
 }
 
-.input-section, .controls-section, .preview-section, .output-section {
+.input-section,
+.controls-section,
+.preview-section,
+.output-section {
   background: #f8f9fa;
   border-radius: 10px;
   padding: 20px;
@@ -221,7 +224,8 @@ body {
   box-shadow: none;
 }
 
-.preview-section h3, .output-section h3 {
+.preview-section h3,
+.output-section h3 {
   margin-bottom: 15px;
   color: #2c3e50;
   font-weight: 600;
@@ -248,12 +252,13 @@ body {
   padding: 15px;
   border: 2px solid #dee2e6;
   border-radius: 8px;
-  font-family: 'Courier New', monospace;
+  font-family: "Courier New", monospace;
   font-size: 12px;
   line-height: 1.2;
   resize: none;
   background: #fafafa;
   min-height: 400px;
+  text-wrap-mode: nowrap;
 }
 
 #output:focus {
@@ -267,7 +272,8 @@ body {
   margin-top: 15px;
 }
 
-.copy-button, .download-button {
+.copy-button,
+.download-button {
   flex: 1;
   padding: 10px;
   border: none;
@@ -306,15 +312,15 @@ body {
     grid-template-columns: 1fr;
     gap: 20px;
   }
-  
+
   .container {
     margin: 10px;
   }
-  
+
   .header {
     padding: 20px;
   }
-  
+
   .header h1 {
     font-size: 2em;
   }
@@ -324,30 +330,31 @@ body {
   .controls {
     flex-direction: column;
   }
-  
+
   .text-controls {
     flex-direction: column;
   }
-  
+
   .output-controls {
     flex-direction: column;
   }
-  
+
   body {
     padding: 10px;
   }
-  
+
   .main-content {
     padding: 20px;
   }
-}* {
+}
+* {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
 body {
-  font-family: 'Roboto', sans-serif;
+  font-family: "Roboto", sans-serif;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   min-height: 100vh;
   padding: 20px;
@@ -358,7 +365,7 @@ body {
   margin: 0 auto;
   background: white;
   border-radius: 15px;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
   overflow: hidden;
 }
 
@@ -399,7 +406,10 @@ body {
   flex-direction: column;
 }
 
-.input-section, .controls-section, .preview-section, .output-section {
+.input-section,
+.controls-section,
+.preview-section,
+.output-section {
   background: #f8f9fa;
   border-radius: 10px;
   padding: 20px;
@@ -563,7 +573,8 @@ body {
   box-shadow: none;
 }
 
-.preview-section h3, .output-section h3 {
+.preview-section h3,
+.output-section h3 {
   margin-bottom: 15px;
   color: #2c3e50;
   font-weight: 600;
@@ -590,7 +601,7 @@ body {
   padding: 15px;
   border: 2px solid #dee2e6;
   border-radius: 8px;
-  font-family: 'Courier New', monospace;
+  font-family: "Courier New", monospace;
   font-size: 12px;
   line-height: 1.2;
   resize: none;
@@ -609,7 +620,8 @@ body {
   margin-top: 15px;
 }
 
-.copy-button, .download-button {
+.copy-button,
+.download-button {
   flex: 1;
   padding: 10px;
   border: none;
@@ -648,15 +660,15 @@ body {
     grid-template-columns: 1fr;
     gap: 20px;
   }
-  
+
   .container {
     margin: 10px;
   }
-  
+
   .header {
     padding: 20px;
   }
-  
+
   .header h1 {
     font-size: 2em;
   }
@@ -666,20 +678,47 @@ body {
   .controls {
     flex-direction: column;
   }
-  
+
   .text-controls {
     flex-direction: column;
   }
-  
+
   .output-controls {
     flex-direction: column;
   }
-  
+
   body {
     padding: 10px;
   }
-  
+
   .main-content {
     padding: 20px;
   }
+}
+
+.aspect-ratio-control {
+  margin-top: 15px;
+  padding: 10px;
+  background: #e8f4fd;
+  border-radius: 5px;
+  border: 1px solid #3498db;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-weight: 500;
+  color: #2c3e50;
+}
+
+.checkbox-label input[type="checkbox"] {
+  margin-right: 10px;
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.checkbox-label .checkmark {
+  font-size: 14px;
 }

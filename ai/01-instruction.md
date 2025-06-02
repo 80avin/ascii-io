@@ -19,3 +19,21 @@ Question:
 
 Please try to think over this question and provide your thoughts on the approach.
 Once we are clear, we can start with the implementation.
+
+---
+
+It is already impressive.
+
+Few changes though:
+
+The ascii image being drawn is inverted. Darker colours in input are lighter in output. Please fix this.
+
+Provide an option to choose character set also. The options should be:
+
+Alphanumeric ( current character set )
+
+Block ( unicode 0x2580 to 0x259f and 0x1fb00 to 1fb9f )
+
+Please change the approach of finding the correct character.
+
+Instead of using an intensity map, I also want to consider which character represents the pixel block closely. i.e. I should not be comparing only the total intensity of the pixel block, instead finding which character, if overlapped on the same block, represents the intensity distribution the best. Important: Plan out this implementation. Find the challenges, their solutions and plan the correct approach. Only then start implementation.
